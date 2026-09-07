@@ -8,7 +8,7 @@ const getGroqAPIResponse = async (message) => {
             Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
         },
         body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
+            model: "groq/compound-mini",
             messages: [
                 {
                     role: "user",
@@ -27,6 +27,7 @@ const getGroqAPIResponse = async (message) => {
 
         if (!response.ok) {
             const error = await response.json();
+            console.error("Groq API HTTP Error:", error);
             throw new Error(JSON.stringify(error));
         }
 
@@ -34,7 +35,7 @@ const getGroqAPIResponse = async (message) => {
         return data.choices[0].message.content;
     } catch (err) {
         console.error("Groq API Error:", err.message);
-        return "Sorry, something went wrong while contacting the AI.";
+        return "I apologize, but I'm unable to connect to the AI service. Please check your API key configuration.";
     }
 };
 
