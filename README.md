@@ -1,202 +1,186 @@
 # SigmaGPT
 
-A full-stack chat application built with React (Vite) frontend and Express/MongoDB backend. SigmaGPT stores chat threads and uses the Groq API to generate assistant replies.
+SigmaGPT is a full-stack AI chat application with a React/Vite frontend, an Express backend, MongoDB thread storage, and Groq-powered assistant responses.
 
-## 🚀 Project Overview
+## Features
 
-- **Frontend:** React + Vite
-- **Backend:** Node.js + Express
-- **Database:** MongoDB via Mongoose
-- **AI Service:** Groq API (`llama-3.3-70b-versatile`)
-- **Features:**
-  - create and continue chat threads
-  - save chat history in MongoDB
-  - render AI replies with Markdown + syntax highlighting
-  - delete chat threads
+- Create and continue chat threads
+- Persist conversations in MongoDB
+- Generate replies with the Groq Chat Completions API
+- Render assistant messages with Markdown and syntax highlighting
+- View and delete saved threads
 
-## 📁 Project Structure
+## Technology Stack
 
-```
+- Frontend: React 19 and Vite
+- Backend: Node.js and Express 5
+- Database: MongoDB with Mongoose
+- AI provider: Groq API
+- Groq model: `groq/compound-mini`
+
+## Project Structure
+
+```text
 SIGMAGPT/
 ├── Backend/
-│   ├── models/
-│   │   └── Thread.js
-│   ├── routes/
-│   │   └── chat.js
-│   ├── utils/
-│   │   └── groqai.js
+│   ├── models/Thread.js
+│   ├── routes/chat.js
+│   ├── utils/groqai.js
+│   ├── .env
 │   ├── package.json
 │   └── server.js
-└── Frontend/
-    ├── public/
-    ├── src/
-    │   ├── App.jsx
-    │   ├── Chat.jsx
-    │   ├── ChatWindow.jsx
-    │   ├── Sidebar.jsx
-    │   ├── MyContext.jsx
-    │   ├── main.jsx
-    │   └── styles/*.css
-    ├── package.json
-    └── README.md
+├── Frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.js
+└── README.md
 ```
 
-## 🧩 Architecture Diagram
+## Prerequisites
 
-### Mermaid diagram
+- Node.js 18 or newer
+- npm
+- A MongoDB database, such as MongoDB Atlas
+- A Groq API key
 
-```mermaid
-flowchart LR
-  A[User Browser] -->|HTTP| B[React Vite Frontend]
-  B -->|POST /api/chat| C[Express Backend]
-  B -->|GET /api/thread| C
-  B -->|GET /api/thread/:threadId| C
-  B -->|DELETE /api/thread/:threadId| C
-  C -->|MongoDB read/write| D[(MongoDB)]
-  C -->|Groq API request| E[Groq AI Service]
-  E -->|AI completion| C
-  C -->|JSON reply| B
-  B -->|render chat| A
+## Configuration
+
+Create `Backend/.env` with your own credentials:
+
+```env
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<database>
+GROQ_API_KEY=<your-groq-api-key>
 ```
 
-### Plain-text working diagram
+Never commit API keys or database passwords to source control.
 
-```
- User Browser
-      |
-      v
- React Vite Frontend
-      |
-      |-- POST /api/chat -----> Express Backend
-      |                          |      |
-      |                          |      +---> MongoDB (Thread storage)
-      |                          |      |
-      |                          |      +---> Groq AI Service
-      |                          |              |
-      |                          |              v
-      |                          |         AI response
-      |                          v
-      |<-- JSON reply ----------
-      v
- Render chat in browser
+## Installation
+
+Install backend dependencies:
+
+```bash
+cd Backend
+npm install
 ```
 
-> Use the Mermaid section if your README viewer supports Mermaid diagrams. The plain-text diagram above will display everywhere.
+In a second terminal, install frontend dependencies:
 
-## 🔧 Backend Setup
+```bash
+cd Frontend
+npm install
+```
 
-1. Open a terminal in `SIGMAGPT/Backend`
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file with:
-   ```env
-   MONGODB_URI=your_mongodb_connection_string
-   GROQ_API_KEY=your_groq_api_key
-   ```
-4. Start the backend server:
-   ```bash
-   node server.js
-   ```
+## Running the Application
 
-> If you want live reload during development and have `nodemon` installed, run:
-> ```bash
-> npx nodemon server.js
-> ```
+Start the backend from the `Backend` directory:
 
-## 🌐 Frontend Setup
+```bash
+node server.js
+```
 
-1. Open a terminal in `SIGMAGPT/Frontend`
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the app:
-   ```bash
-   npm run dev
-   ```
-4. Open the local Vite URL shown in the terminal (usually `http://localhost:5173`).
+The backend runs at `http://localhost:8080` after connecting to MongoDB.
 
-## 🧪 API Endpoints
+Start the frontend from the `Frontend` directory:
 
-### POST `/api/chat`
-Send a user message and receive the AI assistant reply.
+```bash
+npm run dev
+```
 
-Request body:
+Open the Vite URL shown in the terminal, usually `http://localhost:5173`.
+
+Build and preview the frontend:
+
+```bash
+npm run build
+npm run preview
+```
+
+## API Reference
+
+All API routes are mounted under `/api`.
+
+### `POST /api/chat`
+
+Send a message and receive an assistant reply. A new thread is created when `threadId` does not already exist.
+
+Request:
+
 ```json
 {
-  "threadId": "<thread-id>",
-  "message": "<user message>"
+  "threadId": "example-thread-id",
+  "message": "Explain closures in JavaScript"
 }
 ```
 
 Response:
+
 ```json
 {
-  "reply": "<assistant reply>"
+  "reply": "..."
 }
 ```
 
-### GET `/api/thread`
-Fetch all saved chat threads.
+### `GET /api/thread`
 
-Response example:
-```json
-[
-  { "threadId": "...", "title": "..." },
-  ...
-]
+Returns saved threads ordered by most recently updated.
+
+### `GET /api/thread/:threadId`
+
+Returns the messages for a specific thread.
+
+### `DELETE /api/thread/:threadId`
+
+Deletes a specific thread and returns a success message.
+
+### `POST /api/test`
+
+Creates a sample thread for checking MongoDB connectivity during development.
+
+## Data Model
+
+Each thread stores:
+
+- `threadId`: unique application thread identifier
+- `title`: first user message used as the thread title
+- `messages`: ordered user and assistant messages
+- `createdAt`: creation timestamp
+- `updatedAt`: last update timestamp
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[User Browser] --> F[React Frontend]
+    F -->|HTTP JSON| B[Express Backend]
+    B -->|Read and write threads| M[(MongoDB)]
+    B -->|Chat completion| G[Groq API]
+    G --> B
+    B --> F
 ```
 
-### GET `/api/thread/:threadId`
-Fetch a specific thread's messages.
+## Troubleshooting
 
-Response example:
-```json
-[
-  { "role": "user", "content": "..." },
-  { "role": "assistant", "content": "..." }
-]
-```
+### Backend does not start
 
-### DELETE `/api/thread/:threadId`
-Delete a chat thread by ID.
+- Confirm `Backend/.env` contains `MONGODB_URI` and `GROQ_API_KEY`.
+- Check the MongoDB connection string and Atlas network access settings.
+- Run the server from the `Backend` directory.
 
-Response example:
-```json
-{ "success": "Thread deleted successfully" }
-```
+### Chat returns an AI service error
 
-## 🧠 Data Model
+- Confirm the Groq key is active and has not been revoked.
+- Confirm the configured model is available to the key.
+- Check the backend terminal for the Groq API error.
 
-`Backend/models/Thread.js` defines:
-- `threadId` (unique)
-- `title`
-- `messages` with `role`, `content`, and `timestamp`
-- `createdAt`, `updatedAt`
+### Frontend cannot reach the backend
 
-## 📌 Notes
+- Confirm the backend is running at `http://localhost:8080`.
+- Confirm the frontend is running at `http://localhost:5173`.
+- Check the browser Network tab for failed `/api` requests.
 
-- The frontend connects to the backend at `http://localhost:8080`.
-- The backend uses the Groq AI chat completions endpoint and requires a valid `GROQ_API_KEY`.
-- Chat responses are rendered in Markdown, including code highlighting.
+## Security
 
-## 💡 Usage
-
-- Click the sidebar button to start a new chat.
-- Send messages in the input box.
-- Switch between saved threads from the sidebar.
-- Delete threads with the trash icon.
-
-## 🛠️ Recommended Improvements
-
-- Add error UI for failed requests.
-- Support environment-specific backend URL configuration.
-- Add backend scripts to `Backend/package.json`:
-  - `start`: `node server.js`
-  - `dev`: `nodemon server.js`
-
----
-
-Built with ❤️ by the SigmaGPT project.
+- Keep `Backend/.env` private and never commit it.
+- Do not place backend credentials in frontend code.
+- Rotate credentials immediately if they are exposed.
